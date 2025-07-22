@@ -5,6 +5,7 @@ namespace sudoku_solver_api.Services;
 public interface ISudokuService
 {
   int[,] GenerateSudoku(Difficulty difficulty);
-  bool SolvePuzzle(int[,] puzzleGrid);
-  bool IsValidSolution(int[,] originalGrid, int[,] userGrid);
+  (bool isSolavble, int[][]?) SolvePuzzle(int[,] puzzleGrid);
+  bool IsValidSolution(int[,] userGrid);
+  int[][] GetSolution(int[][] grid);
 }
