@@ -57,7 +57,7 @@ public class SudokuService : ISudokuService
     var clonedGrid = _Clone2DArray(defaultGrid);
     var isSolavble = _Solve(clonedGrid);
 
-    return (isSolavble, isSolavble ? ArrayConverter.ToJagged(clonedGrid) : null);
+    return (isSolavble, isSolavble ? ArrayConverter.ToJagged(clonedGrid) : throw new Exception("Sudoku is not solvable."));
   }
 
   private static bool _Solve(int[,] grid)
@@ -129,6 +129,6 @@ public class SudokuService : ISudokuService
     
     var (isSolvable, solvedGrid) = SolvePuzzle((multidimensionalGrid));
     
-    return isSolvable ? solvedGrid : new int[9][];
+    return isSolvable ? solvedGrid! : throw new Exception("Sudoku is not solvable.");
   }
 }

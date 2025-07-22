@@ -21,10 +21,18 @@ public class SudokuController : ControllerBase
   [Route("generate")]
   public ActionResult<int[][]> GenerateSudoku([FromQuery] Difficulty difficulty = Difficulty.Easy)
   {
-    var generatedGrid = _sudokuService.GenerateSudoku(difficulty);
-    var result = ArrayConverter.ToJagged(generatedGrid);
-    // return Ok(generatedGrid.Cast<int>().Select(x => new[] { x }).ToArray());
-    return Ok(result);
+    try
+    {
+      var generatedGrid = _sudokuService.GenerateSudoku(difficulty);
+      var result = ArrayConverter.ToJagged(generatedGrid);
+      // return Ok(generatedGrid.Cast<int>().Select(x => new[] { x }).ToArray());
+      return Ok(result);  
+    }
+    catch (Exception ex)
+    {
+      return BadRequest(new { message = ex.Message });
+    }
+    
   }
 
   [HttpGet]
