@@ -23,8 +23,7 @@ public class SudokuController : ControllerBase
   {
     try
     {
-      var generatedGrid = _sudokuService.GenerateSudoku(difficulty);
-      // return Ok(generatedGrid.Cast<int>().Select(x => new[] { x }).ToArray());
+      var generatedGrid = _sudokuService.NewGame(difficulty);
       return Ok(generatedGrid);  
     }
     catch (Exception ex)

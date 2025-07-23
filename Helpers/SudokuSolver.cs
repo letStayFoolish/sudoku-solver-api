@@ -7,7 +7,7 @@ public class SudokuSolver : ISudokuSolver
     var rows = sourceArray.GetLength(0);
     var columns = sourceArray.GetLength(1);
     var clone = new int[rows, columns];
-    
+
     for (var i = 0; i < rows; i++)
     {
       for (var j = 0; j < columns; j++)
@@ -24,7 +24,8 @@ public class SudokuSolver : ISudokuSolver
     var clonedGrid = _Clone2DArray(defaultGrid);
     var isSolvable = _Solve(clonedGrid);
 
-    return (isSolvable, isSolvable ? ArrayConverter.ToJagged(clonedGrid) : throw new Exception("Sudoku is not solvable."));
+    return (isSolvable,
+      isSolvable ? ArrayConverter.ToJagged(clonedGrid) : throw new Exception("Sudoku is not solvable."));
   }
 
   private static bool _Solve(int[,] grid)
@@ -67,6 +68,7 @@ public class SudokuSolver : ISudokuSolver
     // check if num is already in row
     for (var i = 0; i < 9; i++)
     {
+      if (i == col || i == row) continue;
       if (grid[row, i] == num || grid[i, col] == num)
         return false;
     }
@@ -77,6 +79,7 @@ public class SudokuSolver : ISudokuSolver
     {
       for (var j = 0; j < 3; j++)
       {
+        // if((startRow + i == row || startCol + j == col)) continue;
         if (grid[startRow + i, startCol + j] == num)
           return false;
       }
@@ -84,7 +87,7 @@ public class SudokuSolver : ISudokuSolver
 
     return true;
   }
-  
+
   public bool IsValidSolution(int[,] userGrid)
   {
     return _Solve(userGrid);

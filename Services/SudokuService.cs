@@ -11,7 +11,7 @@ private readonly ISudokuSolver _solver;
     _solver = solver;
   }
   
-  public int[][] GenerateSudoku(Difficulty difficulty)
+  public int[][] NewGame(Difficulty difficulty)
   {
     // Hard-coded EASY Sudoku puzzle with zeros representing empty cells
     // This will be needed in the future to fill random cells with numbers from a previously checked combination
@@ -20,15 +20,15 @@ private readonly ISudokuSolver _solver;
     // For now, we use a random Easy starter combination from the internet
     var easyPuzzle = new int[,]
     {
-      { 0, 0, 0, 8, 0, 0, 0, 0, 9 },
-      { 8, 0, 7, 0, 9, 0, 0, 3, 0 },
-      { 0, 2, 0, 0, 0, 6, 8, 0, 0 },
-      { 5, 0, 0, 0, 4, 3, 6, 0, 0 },
-      { 0, 4, 0, 6, 5, 0, 0, 1, 0 },
-      { 0, 0, 3, 2, 0, 0, 0, 0, 4 },
-      { 0, 0, 1, 4, 0, 0, 0, 2, 0 },
-      { 0, 8, 0, 0, 6, 0, 4, 0, 1 },
-      { 7, 0, 4, 0, 0, 1, 0, 0, 0 }
+      { 0, 6, 0, 0, 0, 2, 0, 0, 0 },
+      { 0, 0, 3, 0, 0, 0, 0, 0, 1 },
+      { 4, 0, 0, 8, 6, 0, 0, 9, 0 },
+      { 5, 0, 0, 0, 0, 7, 0, 0, 0 },
+      { 0, 1, 0, 2, 5, 0, 0, 0, 9 },
+      { 0, 0, 0, 0, 0, 4, 0, 2, 0 },
+      { 6, 0, 0, 5, 9, 0, 0, 8, 0 },
+      { 0, 0, 0, 0, 7, 0, 0, 0, 0 },
+      { 0, 4, 0, 0, 0, 0, 6, 0, 0 }
     };
     // Here you'd generate a puzzle based on the `difficulty`.
     // But for now, we return the hard-coded grid for testing.
