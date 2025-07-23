@@ -24,9 +24,8 @@ public class SudokuController : ControllerBase
     try
     {
       var generatedGrid = _sudokuService.GenerateSudoku(difficulty);
-      var result = ArrayConverter.ToJagged(generatedGrid);
       // return Ok(generatedGrid.Cast<int>().Select(x => new[] { x }).ToArray());
-      return Ok(result);  
+      return Ok(generatedGrid);  
     }
     catch (Exception ex)
     {
@@ -36,7 +35,7 @@ public class SudokuController : ControllerBase
   }
 
   [HttpGet]
-  [Route("solve")]
+  [Route("solved")]
   public ActionResult SolvePuzzle([FromBody] int[][] puzzleGrid)
   {
     try
