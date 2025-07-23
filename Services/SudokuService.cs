@@ -6,9 +6,11 @@ namespace sudoku_solver_api.Services;
 public class SudokuService : ISudokuService
 {
 private readonly ISudokuSolver _solver;
-  public SudokuService(ISudokuSolver solver)
+private readonly ICustomConverter _converter;
+  public SudokuService(ISudokuSolver solver, ICustomConverter converter)
   {
     _solver = solver;
+    _converter = converter;
   }
   
   public int[][] NewGame(Difficulty difficulty)
@@ -18,7 +20,15 @@ private readonly ISudokuSolver _solver;
     var newGrid = _GenerateDefaultGrid();
     // If it is Easy, e.g., 25 cells we should fill with real value (from 1 to 9) from a solvable combination!
     // For now, we use a random Easy starter combination from the internet
-    var easyPuzzle = new int[,]
+
+    var random = new Random();
+    for(var i = 0; i < 25; i++)
+    {
+      var colIndex = random.Next(8);
+      var rowIndex = random.Next(8);
+      newGrid[rowIndex, colIndex] = random.Next(9);
+    }
+    var easyPuzzle = new[,]
     {
       { 0, 6, 0, 0, 0, 2, 0, 0, 0 },
       { 0, 0, 3, 0, 0, 0, 0, 0, 1 },
@@ -32,9 +42,11 @@ private readonly ISudokuSolver _solver;
     };
     // Here you'd generate a puzzle based on the `difficulty`.
     // But for now, we return the hard-coded grid for testing.
-    var (isSolvable, solvedGrid) = _solver.SolvePuzzle(easyPuzzle);
-    var generatedPuzzleToJaggedArr = ArrayConverter.ToJagged(easyPuzzle);
-    var defaultPuzzleToJaggedArr = ArrayConverter.ToJagged(newGrid);
+    var (isSolvable, solvedGrid) = _solver.SolvePuzzle(newGrid);
+    // var (isSolvable, solvedGrid) = _solver.SolvePuzzle(easyPuzzle);
+    var generatedPuzzleToJaggedArr = _converter.ToJagged(newGrid);
+    // var generatedPuzzleToJaggedArr = _converter.ToJagged(easyPuzzle);
+    var defaultPuzzleToJaggedArr = _converter.ToJagged(new int[9,9]);
     return isSolvable ? generatedPuzzleToJaggedArr : defaultPuzzleToJaggedArr;
   }
 
@@ -45,7 +57,7 @@ private readonly ISudokuSolver _solver;
 
   public int[][] GetSolution(int[][] grid)
   {
-    var multidimensionalGrid = ArrayConverter.ToMultidimensional(grid);
+    var multidimensionalGrid = _converter.ToMultidimensional(grid);
     
     var (isSolvable, solvedGrid) = _solver.SolvePuzzle((multidimensionalGrid));
     

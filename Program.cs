@@ -25,6 +25,7 @@ var builder = WebApplication.CreateBuilder(args); // This initiates the applicat
   // Custom Service Registration
   services.AddScoped<ISudokuService, SudokuService>();
   services.AddScoped<ISudokuSolver, SudokuSolver>();
+  services.AddSingleton<ICustomConverter, CustomConverter>();
 }
 
 // App Pipeline Configuration - the pipeline specifies how the application will process incoming HTTP requests.

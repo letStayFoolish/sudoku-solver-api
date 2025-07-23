@@ -2,6 +2,12 @@
 
 public class SudokuSolver : ISudokuSolver
 {
+  private readonly ICustomConverter _converter;
+
+  public SudokuSolver(ICustomConverter converter)
+  {
+    _converter = converter;
+  }
   private static int[,] _Clone2DArray(int[,] sourceArray)
   {
     var rows = sourceArray.GetLength(0);
@@ -25,7 +31,7 @@ public class SudokuSolver : ISudokuSolver
     var isSolvable = _Solve(clonedGrid);
 
     return (isSolvable,
-      isSolvable ? ArrayConverter.ToJagged(clonedGrid) : throw new Exception("Sudoku is not solvable."));
+      isSolvable ? _converter.ToJagged(clonedGrid) : throw new Exception("Sudoku is not solvable."));
   }
 
   private static bool _Solve(int[,] grid)
