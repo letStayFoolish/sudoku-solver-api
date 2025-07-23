@@ -31,10 +31,10 @@ public class SudokuSolver : ISudokuSolver
     var isSolvable = _Solve(clonedGrid);
 
     return (isSolvable,
-      isSolvable ? _converter.ToJagged(clonedGrid) : throw new Exception("Sudoku is not solvable."));
+      isSolvable ? _converter.ToJagged(clonedGrid) : _converter.ToJagged(defaultGrid));
   }
 
-  private static bool _Solve(int[,] grid)
+  private bool _Solve(int[,] grid)
   {
     // find the first cell with 0:
     for (var row = 0; row < 9; row++)
@@ -45,7 +45,7 @@ public class SudokuSolver : ISudokuSolver
 
         for (var num = 1; num <= 9; num++)
         {
-          if (!_IsSafe(grid, row, col, num)) continue;
+          if (!IsSafe(grid, row, col, num)) continue;
 
           // if all of conditions from above are satisfied, place a number and keep going through the grid
           grid[row, col] = num;
@@ -68,13 +68,13 @@ public class SudokuSolver : ISudokuSolver
     return true; // Puzzle is fully solved
   }
 
-  private static bool _IsSafe(int[,] grid, int row, int col, int num)
+  public bool IsSafe(int[,] grid, int row, int col, int num)
   {
     // check if num is already in column
     // check if num is already in row
     for (var i = 0; i < 9; i++)
     {
-      if (i == col || i == row) continue;
+      // if (i == col || i == row) continue;
       if (grid[row, i] == num || grid[i, col] == num)
         return false;
     }
