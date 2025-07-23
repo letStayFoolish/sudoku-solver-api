@@ -33,7 +33,8 @@ public class SudokuController : ControllerBase
     
   }
 
-  [HttpGet]
+  // [HttpGet]
+  [HttpPost]
   [Route("solved")]
   public ActionResult SolvePuzzle([FromBody] int[][] puzzleGrid)
   {
