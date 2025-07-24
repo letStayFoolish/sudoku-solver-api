@@ -19,7 +19,7 @@ public class SudokuController : ControllerBase
   // GET - Generates new sudoku puzzle - /generate?difficulty=easy
   [HttpGet]
   [Route("generate")]
-  public ActionResult<int[][]> GenerateSudoku([FromQuery] Difficulty difficulty = Difficulty.Easy)
+  public ActionResult<int[][]> GenerateSudoku([FromQuery] Difficulty difficulty = Difficulty.Hard)
   {
     try
     {
