@@ -77,6 +77,7 @@ public class SudokuService : ISudokuService
       Difficulty.Easy => 30,
       Difficulty.Medium => 40,
       Difficulty.Hard => 50,
+      Difficulty.Extreme => 65,
       _ => 35,
     };
     
