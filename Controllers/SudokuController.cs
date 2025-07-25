@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using sudoku_solver_api.Helpers;
+using sudoku_solver_api.Interfaces;
 using sudoku_solver_api.Models;
-using sudoku_solver_api.Services;
 
 namespace sudoku_solver_api.Controllers;
 
@@ -10,43 +9,83 @@ namespace sudoku_solver_api.Controllers;
 public class SudokuController : ControllerBase
 {
   private readonly ISudokuService _sudokuService;
+  private readonly ILogger<SudokuController> _logger;
 
-  public SudokuController(ISudokuService sudokuService)
+  public SudokuController(ISudokuService sudokuService, ILogger<SudokuController> logger)
   {
     _sudokuService = sudokuService;
+    _logger = logger;
   }
 
   // GET - Generates new sudoku puzzle - /generate?difficulty=easy
   [HttpGet]
   [Route("generate")]
-  public ActionResult<int[][]> GenerateSudoku([FromQuery] Difficulty difficulty = Difficulty.Hard)
+  public async Task<ActionResult<ApiResponse<int[][]>>> GenerateSudoku(
+    [FromQuery] Difficulty difficulty = Difficulty.Hard)
   {
     try
     {
-      var generatedGrid = _sudokuService.NewGame(difficulty);
-      return Ok(generatedGrid);  
+      _logger.LogInformation("Generating sudoku puzzle with difficulty: {Difficulty}", difficulty);
+
+      var generatedGrid = await _sudokuService.NewGameAsync(difficulty);
+      // return Ok(new { newPuzzle = generatedGrid, message = "Sudoku puzzle generated successfully.", status = StatusCode(200), solvable = true  });
+      return Ok(new ApiResponse<int[][]>
+      {
+        Data = generatedGrid,
+        Message = "Sudoku puzzle generated successfully.",
+        Success = true,
+      });
     }
     catch (Exception ex)
     {
-      return BadRequest(new { message = ex.Message });
+      _logger.LogError(ex, "Error generating sudoku puzzle");
+
+      return BadRequest(new ApiResponse<int[][]>
+      {
+        Message = ex.Message,
+        Success = false,
+      });
     }
-    
   }
 
-  // [HttpGet]
   [HttpPost]
-  [Route("solved")]
-  public ActionResult SolvePuzzle([FromBody] int[][] puzzleGrid)
+  [Route("solve")]
+  public async Task<ActionResult<ApiResponse<int[][]>>> SolvePuzzleAsync([FromBody] SudokuGridRequest puzzleRequest)
   {
+    // don't need to check `ModelState.IsValid` in each controller action
+    // We added config.Filters.Add<ValidationFilter>(); within Program.cs
+    // if (!ModelState.IsValid)
+    // {
+    //   return BadRequest(new ApiResponse<int[][]>
+    //   {
+    //     Message = "Invalid puzzle grid.",
+    //     Success = false,
+    //   });
+    // }
+
     try
     {
+      _logger.LogInformation("Solving sudoku puzzle");
+
       // Convert jagged array to multidimensional array
-      var solution = _sudokuService.GetSolution(puzzleGrid);
-      return Ok(solution);
+      var solution = await _sudokuService.GetSolutionAsync(puzzleRequest.PuzzleGrid!);
+      
+      return Ok(new ApiResponse<int[][]>
+      {
+        Data = solution,
+        Message = "Sudoku puzzle solved successfully.",
+        Success = true,
+      });
     }
     catch (Exception ex)
     {
-      return BadRequest(new { message = ex.Message });
+      _logger.LogInformation(ex, "Error solving sudoku puzzle.");
+      
+      return BadRequest(new ApiResponse<int[][]>
+      {
+        Message = ex.Message,
+        Success = false,
+      });
     }
   }
   // POST - Accepts the user's puzzle and return a solution - /solve

@@ -1,4 +1,4 @@
-﻿namespace sudoku_solver_api.Helpers;
+﻿namespace sudoku_solver_api.Interfaces;
 
 public interface ICustomConverter
 {

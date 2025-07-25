@@ -1,96 +1,147 @@
 ﻿# Sudoku Solver API
 
-This project is a web-based API providing a solution to solve Sudoku puzzles programmatically. It is implemented using **ASP.NET Core** and .NET 9.0, leveraging a modern and scalable architecture.
+This project features an API designed to solve **Sudoku puzzles** programmatically. Built using **ASP.NET Core** on *
+*.NET 9.0**, it leverages a modular and scalable architecture suitable for modern web-based solutions.
 
 ## Features
 
-- **Solve Sudoku Puzzles**: Accept Sudoku puzzle grids through the API and return their solutions.
-- **Customizable & Extensible**: Easily extend the services for other puzzle-related functionalities.
-- **JSON-based API**: All requests and responses utilize JSON format, ensuring consistency and clarity.
-- **CORS Support**: Configured to allow access from any origin, enabling smooth integration with front-end clients.
-- **Environment-specific Configurations**: Development-specific configurations such as OpenAPI documentation and debugging tools.
+- **Solve Sudoku Puzzles**: Submit a Sudoku grid to get the computed solution.
+- **Generate New Puzzles**: Generate Sudoku puzzles of varying difficulty (Easy, Medium, Hard, Extreme).
+- **Validation Logic**: Validate completed grids for correctness.
+- **JSON-based Communication**: Clear and simple request/response format using JSON.
+- **CORS Support**: Enables integration with external frontend clients.
+- **Extensible Design**: Underlying services can be extended for additional features, including other puzzle types.
 
-## Setup Instructions
+## Technologies Used
+
+- **Framework**: ASP.NET Core on .NET 9.0
+- **Language**: C# 13.0
+- **Architecture**: Web API pattern with dependency injection (DI)
+- Configurations include development-specific features such as **OpenAPI (Swagger)** for API documentation.
+
+## Getting Started
 
 ### Prerequisites
 
-Ensure you have the following installed:
+Ensure the following tools are installed:
 
-- **.NET 9.0 SDK**: [Download here](https://dotnet.microsoft.com/download)
-- Any code editor such as **JetBrains Rider**, **Visual Studio**, or **VS Code**.
-- A tool to test HTTP requests such as **Postman** or **curl**.
+- **.NET SDK 9.0**: [Download here](https://dotnet.microsoft.com/download)
+- A code editor like **JetBrains Rider**, **Visual Studio**, or **VS Code**.
+- An API testing tool such as **Postman** or **curl**.
 
-### Installation
+### Installation Steps
 
-1. Clone this repository:
+1. Clone the Repository:
    ```bash
-   git clone <your-repository-url>
-   cd <repository-folder>
+   git clone [https://github.com/letStayFoolish/sudoku-solver-api.git](https://github.com/letStayFoolish/sudoku-solver-api.git)
+   
+   cd sudoku-solver-api
    ```
 
-2. Restore dependencies:
+2. Restore Dependencies:
    ```bash
    dotnet restore
    ```
 
-3. Build the project:
+3. Build the Application:
    ```bash
    dotnet build
    ```
 
-4. Run the application:
+4. Run the Application:
    ```bash
    dotnet run
    ```
 
-It will start the application, typically available at `http://localhost:5000` (for HTTP) and `https://localhost:5001` (for HTTPS).
+The server will now be running locally at:
+
+- **HTTP**: `http://localhost:5154`
+- **HTTPS**: `https://localhost:5155`
 
 ## API Endpoints
 
-### Available Endpoints
+### 1. **Generate Sudoku Puzzle**
 
-1. **Solve a Sudoku Puzzle**
-    - **Method**: `POST`
-    - **Endpoint**: `/api/sudoku/solve`
-    - **Request Body**:
-      ```json
-      {
-        "grid": [
-           [5, 3, 0, 0, 7, 0, 0, 0, 0],
-           [6, 0, 0, 1, 9, 5, 0, 0, 0],
-           [0, 9, 8, 0, 0, 0, 0, 6, 0],
-           [8, 0, 0, 0, 6, 0, 0, 0, 3],
-           [4, 0, 0, 8, 0, 3, 0, 0, 1],
-           [7, 0, 0, 0, 2, 0, 0, 0, 6],
-           [0, 6, 0, 0, 0, 0, 2, 8, 0],
-           [0, 0, 0, 4, 1, 9, 0, 0, 5],
-           [0, 0, 0, 0, 8, 0, 0, 7, 9]
-        ]
-      }
-      ```
-    - **Response Body**:
-      ```json
-      {
-        "solution": [
-           [5, 3, 4, 6, 7, 8, 9, 1, 2],
-           [6, 7, 2, 1, 9, 5, 3, 4, 8],
-           ...
-        ]
-      }
-      ```
+- **Method**: `GET`
+- **URL**: `/api/sudoku/generate?difficulty={level}`
+    - `difficulty`: Options are `Easy`, `Medium`, or `Hard` (default: `Hard`).
 
-2. **Health Check**
-    - **Method**: `GET`
-    - **Endpoint**: `/api/health`
-    - **Response**:
-      ```json
-      {
-        "status": "Healthy"
-      }
-      ```
+- **Response**:
+  ```json
+   [
+      [5, 3, 0, 0, 7, 0, 0, 0, 0],
+      [6, 0, 0, 1, 9, 5, 0, 0, 0],
+      ...
+    ]
+  ```
 
-## Configuration
+### 2. **Solve a Sudoku Puzzle**
 
-### CORS Policy
+- **Method**: `POST`
+- **URL**: `/api/sudoku/solved`
 
-The application is configured with a global **CORS policy** allowing all origins, headers, and methods:
+- **Request Body**:
+  ```json
+  [
+      [5, 3, 0, 0, 7, 0, 0, 0, 0],
+      [6, 0, 0, 1, 9, 5, 0, 0, 0],
+      ...
+  ]
+  ```
+
+- **Response**:
+
+```json
+[
+  [
+    5,
+    3,
+    4,
+    6,
+    7,
+    8,
+    9,
+    1,
+    2
+  ],
+  [
+    6,
+    7,
+    2,
+    1,
+    9,
+    5,
+    3,
+    4,
+    8
+  ]
+]
+```
+
+### 3. **Health Check**
+
+- **Method**: `GET`
+- **URL**: `/api/health`
+
+- **Response**:
+  ```json
+  {
+    "status": "Healthy"
+  }
+  ```
+
+[//]: # (## Project Structure)
+
+
+## Extending the Application
+
+Future enhancements could include:
+- A front-end client for interactive Sudoku solving.
+- Support for additional puzzle formats (e.g., custom grids).
+- Session management for storing puzzles and solutions.
+
+## License
+
+This project is licensed under the MIT License. See `LICENSE` file for details.
+
+Happy coding! 🧩

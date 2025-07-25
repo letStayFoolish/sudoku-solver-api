@@ -1,20 +1,36 @@
-using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using sudoku_solver_api.Filters;
 using sudoku_solver_api.Helpers;
+using sudoku_solver_api.Interfaces;
 using sudoku_solver_api.Services;
+using Serilog;
 
-var builder = WebApplication.CreateBuilder(args); // This initiates the application setup using a `WebApplicationBuilder`. It leverages modern .NET Core approaches to set up services and middleware.
+Log.Logger = new LoggerConfiguration()
+  .WriteTo.Console()
+  .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+  .CreateLogger();
+
+var
+  builder = WebApplication
+    .CreateBuilder(args); // This initiates the application setup using a `WebApplicationBuilder`. It leverages modern .NET Core approaches to set up services and middleware.
 
 // Add services to the container - Service Registration (DI).
 {
+  builder.Host.UseSerilog();
   var services = builder.Services;
   // Cors policy... 
   services.AddCors();
+  // Add memory caching
+  services.AddMemoryCache();
   // JSON serialization
-  services.AddControllers().AddJsonOptions(options =>
+  services.AddControllers(config =>
+  {
+    config.Filters.Add<ValidationFilter>(); // Adds ValidationFilter globally
+  }).AddJsonOptions(options =>
   {
     // serialize enums as strings in api responses (e.g. Role)
-    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); // Converts enums into strings (e.g., Difficulty.Easy => "Easy") in JSON responses.
+    options.JsonSerializerOptions.Converters.Add(
+      new JsonStringEnumConverter()); // Converts enums into strings (e.g., Difficulty.Easy => "Easy") in JSON responses.
 
     // ignore omitted parameters on models to enable optional params (e.g. User update)
     options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
@@ -23,6 +39,7 @@ var builder = WebApplication.CreateBuilder(args); // This initiates the applicat
   // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
   services.AddOpenApi();
   // Custom Service Registration
+  services.AddScoped<IGridGenerator, GridGenerator>();
   services.AddScoped<ISudokuService, SudokuService>();
   services.AddScoped<ISudokuSolver, SudokuSolver>();
   services.AddSingleton<ICustomConverter, CustomConverter>();
@@ -37,6 +54,9 @@ if (app.Environment.IsDevelopment())
 {
   app.MapOpenApi();
 }
+
+// Add exception middleware
+app.UseMiddleware<ExceptionMiddleware>();
 
 {
 // global cors policy 

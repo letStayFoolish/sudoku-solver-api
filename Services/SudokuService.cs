@@ -1,123 +1,95 @@
-﻿using sudoku_solver_api.Helpers;
+﻿using System.Text.Json;
+using Microsoft.Extensions.Caching.Memory;
+using sudoku_solver_api.Interfaces;
 using sudoku_solver_api.Models;
 
 namespace sudoku_solver_api.Services;
 
 public class SudokuService : ISudokuService
 {
+  private readonly IGridGenerator _gridGenerator;
   private readonly ISudokuSolver _solver;
   private readonly ICustomConverter _converter;
+  private readonly IMemoryCache _cache;
+  private readonly ILogger<SudokuService> _logger;
 
-  public SudokuService(ISudokuSolver solver, ICustomConverter converter)
+  public SudokuService(IGridGenerator gridGenerator, ISudokuSolver solver, ICustomConverter converter, IMemoryCache cache, ILogger<SudokuService> logger)
   {
+    _gridGenerator = gridGenerator;
     _solver = solver;
     _converter = converter;
+    _cache = cache;
+    _logger = logger;
   }
 
-  public int[][] NewGame(Difficulty difficulty)
+  public async Task<int[][]> NewGameAsync(Difficulty difficulty)
   {
-    // Step 1: Generate a fully solved sudogu grid
-    var solvedGrid = _GenerateSolvedGrid();
-    
-    // Step 2: Remove cells based on the difficulty level
-    var puzzleGrid = _RemoveCellsForDifficulty(solvedGrid, difficulty);
-    
-    // Step 3: Ensure puzzle is solvable and only has one solution
-    var(isSolvable, _) = _solver.SolvePuzzle(puzzleGrid);
-    while (!isSolvable)
+    // Step 0: Use in-memory caching to store previously computed grids and solutions.
+    string cacheKey = $"Sudoku_{difficulty}";
+
+    _logger.LogInformation("Generating new sudoku puzzle with difficulty: {Difficulty}", difficulty);
+
+    try
     {
-      // If not solvable (edge case), generate a new grid
-      return NewGame(difficulty);
-    }
-    
-    // Step 4: Convert the multidimensional array to jagged array format
-    var puzzleToJaggedArray = _converter.ToJagged(puzzleGrid);
-    return puzzleToJaggedArray;
-  }
-
-  private int[,] _GenerateSolvedGrid()
-  {
-    var grid = _GenerateDefaultGrid();
-
-    bool Solve(int row, int col)
-    {
-      if(row == 9) return true;
-      if(col == 9) return Solve(row + 1, 0);
-      if (grid[row, col] != 0) return Solve(row, col + 1);
-
-      var random = new Random();
-      var numbers = Enumerable.Range(1, 9).OrderBy(_ => random.Next()).ToArray();
-      
-      foreach (var num in numbers)
+      if (_cache.TryGetValue(cacheKey, out var cachedPuzzle))
       {
-        if (_solver.IsSafe(grid, row, col, num))
-        {
-          grid[row, col] = num;
-          if (Solve(row, col + 1)) return true;
-          grid[row, col] = 0;
-        }
+        _logger.LogInformation("Retrieved puzzle from cache for difficulty: {Difficulty}", difficulty);
+        return cachedPuzzle as int[][];
       }
 
-      return false;
+      // Step 1: Generate a fully solved sudogu grid
+      var solvedGrid = await _gridGenerator.GenerateSolvedGridAsync();
+      // Step 2: Remove cells based on the difficulty level
+      var puzzleGrid = await _gridGenerator.GeneratePuzzleGridAsync(solvedGrid, difficulty);
+      // Step 3: Convert the multidimensional array to jagged array format
+      var jaggedPuzzle = _converter.ToJagged(puzzleGrid);
+
+      _cache.Set(cacheKey, jaggedPuzzle, TimeSpan.FromSeconds(2)); // Cache for 10 minutes
+
+      _logger.LogInformation("Generated and cached new puzzle for difficulty: {Difficulty}", difficulty);
+      return jaggedPuzzle;
     }
-
-    Solve(0, 0);
-    return grid;
-  }
-
-  private int[,] _RemoveCellsForDifficulty(int[,] grid, Difficulty difficulty)
-  {
-    // Clone the grid to ensure the original solved grid is untouched
-    var puzzleGridClone = (int[,])grid.Clone();
-    var random = new Random();
-    
-    // Determine the number of cells to remove based on difficulty
-    var cellsToRemove = difficulty switch
+    catch (Exception ex)
     {
-      Difficulty.Easy => 30,
-      Difficulty.Medium => 40,
-      Difficulty.Hard => 50,
-      Difficulty.Extreme => 65,
-      _ => 35,
-    };
-    
-    // Remove cells randomly while ensuring at least one solution exists
-    for (var i = 0; i < cellsToRemove; i++)
-    {
-      int row, col;
-      do
-      {
-        row = random.Next(0, 9);
-        col = random.Next(0, 9);
-      } while (puzzleGridClone[row, col] == 0);
-
-      var temp = puzzleGridClone[row, col];
-      puzzleGridClone[row, col] = 0;
-      
-      // Ensure the puzzle remains solvable
-      var (isSolvable, _) = _solver.SolvePuzzle(puzzleGridClone);
-      if (!isSolvable)
-      {
-        // Restore the number if the grid becomes unsolvable
-        puzzleGridClone[row, col] = temp;
-      }
+      _logger.LogError(ex, "Error generating new puzzle for difficulty: {Difficulty}", difficulty);
+      throw;
     }
-
-    return puzzleGridClone;
   }
   
-
-  private static int[,] _GenerateDefaultGrid()
+  public async Task<int[][]> GetSolutionAsync(int[][] grid)
   {
-    return new int[9, 9]; // 9x9 with (default) zeros values
-  }
+    var serializedGrid = JsonSerializer.Serialize(grid);
+    string cacheKey = $"Solution_{serializedGrid.GetHashCode()}";
+    
+    _logger.LogInformation("Solving Sudoku Puzzle");
 
-  public int[][] GetSolution(int[][] grid)
-  {
-    var multidimensionalGrid = _converter.ToMultidimensional(grid);
+    try
+    {
+      if (_cache.TryGetValue(cacheKey, out int[][] cachedSolution))
+      {
+        _logger.LogInformation("Retrieved solution from cache");
+        return cachedSolution;
+      }
+    
+      var multidimensionalGrid = _converter.ToMultidimensional(grid);
+      var (isSolvable, solvedGrid) = await _solver.SolvePuzzleAsync((multidimensionalGrid));
 
-    var (isSolvable, solvedGrid) = _solver.SolvePuzzle((multidimensionalGrid));
+      if (!isSolvable)
+      {
+        _logger.LogWarning("Sudoku puzzle is not solvable");
+        // TODO: throw new InvalidOperationException("Sudoku is not solvable.");
+        throw new Exception("Sudoku is not solvable.");
+      }
 
-    return isSolvable ? solvedGrid : throw new Exception("Sudoku is not solvable.");
+      _cache.Set(cacheKey, solvedGrid, TimeSpan.FromMinutes(10)); // Cache solution for 10 minutes
+      
+      _logger.LogInformation("Solved and cached sudoku puzzle");
+      return solvedGrid;
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError(ex, "Error solving sudoku puzzle");
+      throw;
+    }
   }
 }

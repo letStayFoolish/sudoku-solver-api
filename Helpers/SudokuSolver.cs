@@ -1,13 +1,37 @@
-﻿namespace sudoku_solver_api.Helpers;
+﻿using sudoku_solver_api.Interfaces;
+
+namespace sudoku_solver_api.Helpers;
 
 public class SudokuSolver : ISudokuSolver
 {
   private readonly ICustomConverter _converter;
-
   public SudokuSolver(ICustomConverter converter)
   {
     _converter = converter;
   }
+
+  public async Task<(bool isSolvable, int[][] solvedPuzzle)> SolvePuzzleAsync(int[,] defaultGrid)
+  {
+    // **CPU-intensive** operations
+    // **(Non-blocking):**
+    return await Task.Run(() =>
+    {
+      // This runs on a BACKGROUND THREAD (good!)
+      var clonedGrid = _Clone2DArray(defaultGrid);
+      var isSolvable = _Solve(clonedGrid);// without async await Task.Run(() => {}) code: CPU-intensive work blocks request thread | CPU work happens off the request thread
+
+      return (isSolvable,
+        isSolvable ? _converter.ToJagged(clonedGrid) : _converter.ToJagged(defaultGrid));
+    });
+    // **Benefit:** The request thread is freed up to handle other requests while the CPU-intensive work happens in the background.
+  }
+
+  public async Task<bool> IsValidSolutionAsync(int[,] userGrid)
+  {
+    // **CPU-intensive** operations
+    return await Task.Run(() => _Solve(userGrid));
+  }
+  
   private static int[,] _Clone2DArray(int[,] sourceArray)
   {
     var rows = sourceArray.GetLength(0);
@@ -24,16 +48,7 @@ public class SudokuSolver : ISudokuSolver
 
     return clone;
   }
-
-  public (bool isSolvable, int[][] solvedPuzzle) SolvePuzzle(int[,] defaultGrid)
-  {
-    var clonedGrid = _Clone2DArray(defaultGrid);
-    var isSolvable = _Solve(clonedGrid);
-
-    return (isSolvable,
-      isSolvable ? _converter.ToJagged(clonedGrid) : _converter.ToJagged(defaultGrid));
-  }
-
+  
   private bool _Solve(int[,] grid)
   {
     // find the first cell with 0:
@@ -92,10 +107,5 @@ public class SudokuSolver : ISudokuSolver
     }
 
     return true;
-  }
-
-  public bool IsValidSolution(int[,] userGrid)
-  {
-    return _Solve(userGrid);
   }
 }

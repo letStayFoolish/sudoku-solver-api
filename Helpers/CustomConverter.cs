@@ -1,3 +1,5 @@
+using sudoku_solver_api.Interfaces;
+
 namespace sudoku_solver_api.Helpers;
 
 public class CustomConverter : ICustomConverter
