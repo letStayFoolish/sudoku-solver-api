@@ -8,11 +8,19 @@ public class CustomConverter : ICustomConverter
   {
     if (jaggedArray == null || jaggedArray.Length == 0)
     {
+      /*
+       * ArgumentException (Specific Exception)**
+         - **Specialized exception** designed specifically for argument-related errors
+         - **Semantic meaning** - clearly indicates the problem is with method parameters
+         - **Additional properties** like `ParamName` to identify which parameter caused the issue
+         - **Best practice** for parameter validation errors
+         
+       */
       throw new ArgumentException("The jagged array cannot be null or empty.", nameof(jaggedArray));
     }
 
     var rows = jaggedArray.Length;
-    var columns = jaggedArray[0]?.Length ?? throw new ArgumentException("The jagged array rows cannot be null.", nameof(jaggedArray));
+    var columns = jaggedArray[0]?.Length ?? throw new ArgumentException("The jagged array rows cannot be null.", nameof(jaggedArray)); // The number of columns should be equal to the number of rows 9x9
     int[,] multidimensionalArray = new int[rows, columns];
 
     // iterating through the rows

@@ -25,10 +25,10 @@ public class SudokuController : ControllerBase
   {
     try
     {
-      _logger.LogInformation("Generating sudoku puzzle with difficulty: {Difficulty}", difficulty);
+      _logger.LogInformation("Controller: Generating sudoku puzzle with difficulty: {Difficulty}", difficulty);
 
       var generatedGrid = await _sudokuService.NewGameAsync(difficulty);
-      // return Ok(new { newPuzzle = generatedGrid, message = "Sudoku puzzle generated successfully.", status = StatusCode(200), solvable = true  });
+      
       return Ok(new ApiResponse<int[][]>
       {
         Data = generatedGrid,
@@ -38,7 +38,7 @@ public class SudokuController : ControllerBase
     }
     catch (Exception ex)
     {
-      _logger.LogError(ex, "Error generating sudoku puzzle");
+      _logger.LogError(ex, "Controller: Error generating sudoku puzzle");
 
       return BadRequest(new ApiResponse<int[][]>
       {
@@ -65,11 +65,11 @@ public class SudokuController : ControllerBase
 
     try
     {
-      _logger.LogInformation("Solving sudoku puzzle");
+      _logger.LogInformation("Controller: Solving sudoku puzzle");
 
       // Convert jagged array to multidimensional array
       var solution = await _sudokuService.GetSolutionAsync(puzzleRequest.PuzzleGrid!);
-      
+
       return Ok(new ApiResponse<int[][]>
       {
         Data = solution,
@@ -79,7 +79,7 @@ public class SudokuController : ControllerBase
     }
     catch (Exception ex)
     {
-      _logger.LogInformation(ex, "Error solving sudoku puzzle.");
+      _logger.LogInformation(ex, "Controller: Error solving sudoku puzzle.");
       
       return BadRequest(new ApiResponse<int[][]>
       {

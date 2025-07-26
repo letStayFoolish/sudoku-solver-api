@@ -1,3 +1,6 @@
+using System.Net;
+using System.Text.Json;
+
 namespace sudoku_solver_api.Helpers;
 
 public class ExceptionMiddleware
@@ -17,7 +20,7 @@ public class ExceptionMiddleware
     }
     catch (Exception ex)
     {
-      // await HandleExceptionAsync(context, ex);
+      await HandleExceptionAsync(context, ex);
       context.Response.ContentType = "application/json";
       context.Response.StatusCode = 500;
 
@@ -25,27 +28,28 @@ public class ExceptionMiddleware
       await context.Response.WriteAsJsonAsync(response);
     }
   }
-  
-  /*
-   * private static Task HandleExceptionAsync(HttpContext context, Exception ex)
-     {
-         var statusCode = ex switch
-         {
-             ArgumentNullException => HttpStatusCode.BadRequest,
-             InvalidOperationException => HttpStatusCode.Conflict,
-             _ => HttpStatusCode.InternalServerError
-         };
 
-         var response = new
-         {
-             Message = ex.Message,
-             StatusCode = (int)statusCode
-         };
+  private static Task HandleExceptionAsync(HttpContext context, Exception ex)
+  {
+    var statusCode = ex switch
+    {
+      ArgumentNullException => HttpStatusCode.BadRequest,
+      ArgumentException => HttpStatusCode.BadRequest,
+      InvalidOperationException => HttpStatusCode.Conflict,
+      UnauthorizedAccessException => HttpStatusCode.Unauthorized,
+      NotImplementedException => HttpStatusCode.NotImplemented,
+      _ => HttpStatusCode.InternalServerError
+    };
 
-         context.Response.ContentType = "application/json";
-         context.Response.StatusCode = (int)statusCode;
+    var response = new
+    {
+      Message = ex.Message,
+      StatusCode = (int)statusCode
+    };
 
-         return context.Response.WriteAsync(JsonSerializer.Serialize(response));
-     }
-   */
+    context.Response.ContentType = "application/json";
+    context.Response.StatusCode = (int)statusCode;
+
+    return context.Response.WriteAsync(JsonSerializer.Serialize(response));
+  }
 }

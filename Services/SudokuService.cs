@@ -27,13 +27,13 @@ public class SudokuService : ISudokuService
     // Step 0: Use in-memory caching to store previously computed grids and solutions.
     string cacheKey = $"Sudoku_{difficulty}";
 
-    _logger.LogInformation("Generating new sudoku puzzle with difficulty: {Difficulty}", difficulty);
+    _logger.LogInformation("SudokuService:Generating new sudoku puzzle with difficulty: {Difficulty}", difficulty);
 
     try
     {
       if (_cache.TryGetValue(cacheKey, out var cachedPuzzle))
       {
-        _logger.LogInformation("Retrieved puzzle from cache for difficulty: {Difficulty}", difficulty);
+        _logger.LogInformation("SudokuService: Retrieved puzzle from cache for difficulty: {Difficulty}", difficulty);
         return cachedPuzzle as int[][];
       }
 
@@ -44,14 +44,14 @@ public class SudokuService : ISudokuService
       // Step 3: Convert the multidimensional array to jagged array format
       var jaggedPuzzle = _converter.ToJagged(puzzleGrid);
 
-      _cache.Set(cacheKey, jaggedPuzzle, TimeSpan.FromSeconds(2)); // Cache for 10 minutes
+      _cache.Set(cacheKey, jaggedPuzzle, TimeSpan.FromSeconds(2)); // Cache for 2 seconds
 
-      _logger.LogInformation("Generated and cached new puzzle for difficulty: {Difficulty}", difficulty);
+      _logger.LogInformation("SudokuService: Generated and cached new puzzle for difficulty: {Difficulty}", difficulty);
       return jaggedPuzzle;
     }
     catch (Exception ex)
     {
-      _logger.LogError(ex, "Error generating new puzzle for difficulty: {Difficulty}", difficulty);
+      _logger.LogError(ex, "SudokuService: Error generating new puzzle for difficulty: {Difficulty}", difficulty);
       throw;
     }
   }
@@ -59,15 +59,16 @@ public class SudokuService : ISudokuService
   public async Task<int[][]> GetSolutionAsync(int[][] grid)
   {
     var serializedGrid = JsonSerializer.Serialize(grid);
-    string cacheKey = $"Solution_{serializedGrid.GetHashCode()}";
+    string cacheKey = $"Solution_ID{serializedGrid.GetHashCode()}";
     
-    _logger.LogInformation("Solving Sudoku Puzzle");
+    _logger.LogInformation("SudokuService: Cache key created: {cacheKey}", cacheKey);
+    _logger.LogInformation("SudokuService: Solving Sudoku Puzzle");
 
     try
     {
       if (_cache.TryGetValue(cacheKey, out int[][] cachedSolution))
       {
-        _logger.LogInformation("Retrieved solution from cache");
+        _logger.LogInformation("SudokuService: Retrieved solution from cache");
         return cachedSolution;
       }
     
@@ -76,19 +77,18 @@ public class SudokuService : ISudokuService
 
       if (!isSolvable)
       {
-        _logger.LogWarning("Sudoku puzzle is not solvable");
-        // TODO: throw new InvalidOperationException("Sudoku is not solvable.");
-        throw new Exception("Sudoku is not solvable.");
+        _logger.LogWarning("SudokuService: Sudoku puzzle is not solvable");
+        throw new InvalidOperationException("Sudoku is not solvable.");
       }
 
       _cache.Set(cacheKey, solvedGrid, TimeSpan.FromMinutes(10)); // Cache solution for 10 minutes
       
-      _logger.LogInformation("Solved and cached sudoku puzzle");
+      _logger.LogInformation("SudokuService: Solved and cached sudoku puzzle");
       return solvedGrid;
     }
     catch (Exception ex)
     {
-      _logger.LogError(ex, "Error solving sudoku puzzle");
+      _logger.LogError(ex, "SudokuService: Error solving sudoku puzzle");
       throw;
     }
   }

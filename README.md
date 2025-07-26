@@ -67,75 +67,77 @@ The server will now be running locally at:
     - `difficulty`: Options are `Easy`, `Medium`, or `Hard` (default: `Hard`).
 
 - **Response**:
-  ```json
-   [
-      [5, 3, 0, 0, 7, 0, 0, 0, 0],
-      [6, 0, 0, 1, 9, 5, 0, 0, 0],
-      ...
+```json
+{
+  "data": [
+    [
+      0,
+      0,
+      6,
+      9,
+      0,
+      7,
+      0,
+      0,
+      0
+    ],
+    [
+      3,
+      7,
+      0,
+      4,
+      0,
+      2,
+      9,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      9,
+      5,
+      6,
+      8,
+      7,
+      3,
+      4
     ]
-  ```
+    …
+  ],
+  "message": "Sudoku puzzle generated successfully.",
+  "success": true
+}
+```
 
 ### 2. **Solve a Sudoku Puzzle**
 
 - **Method**: `POST`
-- **URL**: `/api/sudoku/solved`
+- **URL**: `/api/sudoku/solve`
 
 - **Request Body**:
-  ```json
-  [
-      [5, 3, 0, 0, 7, 0, 0, 0, 0],
-      [6, 0, 0, 1, 9, 5, 0, 0, 0],
-      ...
-  ]
-  ```
+```json
+{
+  "puzzleGrid": [[5, 3, 0, 0, 7, 0, 0, 0, 0], [6, 0, 0, 1, 9, 5, 0, 0, 0], ...]
+}
+```
 
 - **Response**:
 
 ```json
-[
-  [
-    5,
-    3,
-    4,
-    6,
-    7,
-    8,
-    9,
-    1,
-    2
-  ],
-  [
-    6,
-    7,
-    2,
-    1,
-    9,
-    5,
-    3,
-    4,
-    8
-  ]
-]
+{
+  "data": [[4, 8, 6, 9, 3, 7, 2, 1, 5], [3, 7, 5, 4, 1, 2, 9, 8, 6], [1, 2, 9, 5, 6, 8, 7, 3, 4],…],
+  "message": "Sudoku puzzle solved successfully.",
+  "success": true
+}
 ```
 
-### 3. **Health Check**
-
-- **Method**: `GET`
-- **URL**: `/api/health`
-
-- **Response**:
-  ```json
-  {
-    "status": "Healthy"
-  }
-  ```
-
 [//]: # (## Project Structure)
-
 
 ## Extending the Application
 
 Future enhancements could include:
+
 - A front-end client for interactive Sudoku solving.
 - Support for additional puzzle formats (e.g., custom grids).
 - Session management for storing puzzles and solutions.
